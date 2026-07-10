@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>병원 설명 방식 설문조사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F7F6;
+    --card: #FFFFFF;
+    --ink: #1E2D2B;
+    --ink-soft: #55625F;
+    --border: #DCE3E2;
+    --jargon: #B5555A;
+    --easy: #2F7A73;
+    --detailed: #C98A2E;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--ink);
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  #app { min-height: 100vh; padding: 32px 16px 80px; }
+  h1, h2, h3, .font-serif { font-family: 'Noto Serif KR', serif; margin: 0; }
+  .font-mono { font-family: 'IBM Plex Mono', monospace; }
+  .shell { max-width: 720px; margin: 0 auto; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; letter-spacing: 0.08em; font-weight: 600;
+    color: var(--ink-soft); text-transform: uppercase;
+    background: #ECF1F0; border: 1px solid var(--border);
+    padding: 5px 11px; border-radius: 999px;
+  }
+
+  /* intro */
+  .intro-hero { text-align: center; padding: 20px 0 8px; }
+  .intro-title { font-size: 32px; font-weight: 700; line-height: 1.35; margin: 18px 0 12px; }
+  .intro-desc { color: var(--ink-soft); font-size: 15px; line-height: 1.7; max-width: 520px; margin: 0 auto 28px; }
+  .ecg-divider { width: 100%; max-width: 420px; margin: 0 auto 28px; display: block; }
+  .ecg-path {
+    stroke: var(--easy); stroke-width: 2; fill: none;
+    stroke-dasharray: 600; stroke-dashoffset: 600;
+    animation: draw 1.6s ease-out forwards;
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .intro-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 32px; }
+  @media (max-width: 560px) { .intro-cards { grid-template-columns: 1fr; } }
+  .intro-style-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 14px; text-align: left; }
+  .intro-style-dot { width: 10px; height: 10px; border-radius: 50%; margin-bottom: 10px; }
+  .intro-style-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .intro-style-desc { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    font-family: 'Noto Sans KR', sans-serif; font-weight: 600; font-size: 14.5px;
+    padding: 13px 26px; border-radius: 10px; border: 1px solid transparent;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--easy); color: #fff; }
+  .btn-primary:hover { box-shadow: 0 4px 14px rgba(47,122,115,0.28); }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: var(--border); }
+  .btn-ghost:hover { background: #ECF1F0; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* progress */
+  .progress-rail { margin-bottom: 28px; }
+  .progress-line { height: 2px; background: var(--border); border-radius: 2px; position: relative; margin-bottom: 14px; }
+  .progress-line-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--easy); border-radius: 2px; transition: width 0.3s ease; }
+  .progress-dots { display: flex; justify-content: space-between; }
+  .progress-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .progress-dot {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--card);
+    border: 2px solid var(--border); color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; font-family: 'IBM Plex Mono', monospace;
+  }
+  .progress-dot.filled { border-color: var(--easy); color: var(--easy); }
+  .progress-dot.current { background: var(--easy); border-color: var(--easy); color: #fff; }
+  .progress-dot-label { font-size: 11px; color: var(--ink-soft); }
+
+  .topic-header { margin-bottom: 20px; }
+  .topic-title { font-size: 24px; font-weight: 700; margin: 6px 0 4px; }
+  .topic-subtitle { font-size: 13.5px; color: var(--ink-soft); }
+
+  .exp-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .exp-card-badge { display: inline-block; color: #fff; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 999px; margin-bottom: 12px; }
+  .exp-card-text { font-size: 14.5px; line-height: 1.8; color: var(--ink); margin: 0 0 18px; }
+  .exp-card-rating { border-top: 1px dashed var(--border); padding-top: 14px; }
+  .rating-caption { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; display: block; margin-bottom: 10px; }
+
+  .thermo-shell { display: flex; align-items: center; gap: 8px; }
+  .thermo-bulb {
+    flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 13px;
+    transition: background 0.15s ease;
+  }
+  .thermo-track { flex: 1; display: flex; gap: 4px; }
+  .thermo-seg { flex: 1; height: 16px; border: none; border-radius: 4px; cursor: pointer; transition: background 0.15s ease, transform 0.1s ease; padding: 0; }
+  .thermo-seg:hover { transform: scaleY(1.15); }
+  .thermo-scale-labels { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--ink-soft); margin-top: 6px; padding-left: 38px; }
+
+  .survey-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+  .nav-hint { font-size: 12px; color: var(--ink-soft); }
+
+  .center-state { text-align: center; padding: 80px 20px; }
+  .spin { animation: spin 1s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .results-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+  .results-title { font-size: 26px; font-weight: 700; margin: 4px 0; }
+  .stat-strip { display: flex; gap: 8px; align-items: center; color: var(--ink-soft); font-size: 13px; }
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 16px 18px; margin-bottom: 20px; }
+  .chart-card h3 { font-size: 15px; margin: 0 0 4px; }
+  .chart-card .chart-sub { font-size: 12px; color: var(--ink-soft); margin-bottom: 16px; }
+  .legend-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft); margin-bottom: 14px; }
+  .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+
+  .bar-chart { display: flex; align-items: flex-end; justify-content: center; gap: 28px; height: 190px; padding: 0 8px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; width: 64px; }
+  .bar-value { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .bar-fill { width: 40px; border-radius: 6px 6px 0 0; transition: height 0.4s ease; }
+  .bar-label { font-size: 11px; color: var(--ink-soft); margin-top: 8px; text-align: center; line-height: 1.4; }
+
+  .grouped-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 200px; gap: 12px; padding: 0 4px; }
+  .grouped-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .grouped-bars { display: flex; align-items: flex-end; gap: 5px; height: 160px; }
+  .grouped-bar { width: 20px; border-radius: 5px 5px 0 0; transition: height 0.4s ease; position: relative; }
+  .grouped-bar-value { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .grouped-name { font-size: 12px; font-weight: 600; margin-top: 10px; }
+
+  .win-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 560px) { .win-grid { grid-template-columns: 1fr; } }
+  .win-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+  .win-num { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 700; }
+  .win-label { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ------------------------------------------------------------------ */
+/* Storage abstraction — uses Claude's window.storage when available   */
+/* (shared across everyone), otherwise falls back to this browser's    */
+/* localStorage (only visible on this device).                         */
+/* ------------------------------------------------------------------ */
+
+const LocalStore = {
+  _prefix: "medsurvey::",
+  async get(key) {
+    const raw = localStorage.getItem(this._prefix + key);
+    if (raw === null) throw new Error("not found: " + key);
+    return { key, value: raw, shared: true };
+  },
+  async set(key, value) {
+    localStorage.setItem(this._prefix + key, value);
+    return { key, value, shared: true };
+  },
+  async delete(key) {
+    localStorage.removeItem(this._prefix + key);
+    return { key, deleted: true, shared: true };
+  },
+  async list(prefix) {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf(this._prefix) === 0) {
+        const short = k.slice(this._prefix.length);
+        if (!prefix || short.indexOf(prefix) === 0) keys.push(short);
+      }
+    }
+    return { keys, prefix, shared: true };
+  },
+};
+
+const hasCloudStorage = !!(window.storage && typeof window.storage.set === "function");
+const Store = hasCloudStorage ? window.storage : LocalStore;
+
+/* ------------------------------------------------------------------ */
+/* Content                                                             */
+/* ------------------------------------------------------------------ */
+
+const STYLE_META = {
+  jargon:   { label: "전문어만",              color: "var(--jargon)"   },
+  easy:     { label: "쉬운 말만",              color: "var(--easy)"     },
+  detailed: { label: "전문어 + 자세한 설명",   color: "var(--detailed)" },
+};
+const STYLE_KEYS = ["jargon", "easy", "detailed"];
+
+const TOPICS = [
+  {
+    id: "htn",
+    title: "고혈압",
+    subtitle: "본태성 고혈압 진단 및 치료 안내",
+    texts: {
+      jargon: "환자는 본태성 고혈압(essential hypertension) 진단 하에 수축기혈압 150mmHg, 이완기혈압 95mmHg로 측정되었으며, ACE 억제제 투여를 통한 혈압 강하 및 표적장기손상(target organ damage) 예방을 위한 약물요법을 시작합니다. 정기적인 혈압 모니터링과 함께 나트륨 섭취 제한을 권고드립니다.",
+      easy: "혈압이 정상보다 많이 높아요. 위쪽 숫자가 150, 아래쪽 숫자가 95인데, 보통은 120/80 정도가 좋아요. 혈압을 낮추는 약을 드릴게요. 짠 음식을 줄이고, 혈압을 자주 재보시는 게 좋아요. 혈압이 계속 높으면 심장이나 콩팥에 무리가 갈 수 있어요.",
+      detailed: "환자분은 '본태성 고혈압'이라는 진단을 받으셨어요. 쉽게 말하면 특별한 원인 없이 혈압이 꾸준히 높은 상태를 말해요. 지금 혈압은 150/95인데, 정상은 120/80 이하예요. 앞으로 혈압을 낮추기 위해 'ACE 억제제'라는 약을 드릴 건데, 이 약은 혈관을 좁히는 호르몬 작용을 막아서 혈관을 편하게 넓혀주는 역할을 해요. 혈압이 오래 높으면 심장이나 콩팥 같은 장기(의학용어로 '표적장기')에 손상이 갈 수 있어서, 이를 예방하려는 목적도 있어요. 짠 음식을 줄이고 혈압을 정기적으로 체크해 주세요.",
+    },
+  },
+  {
+    id: "dm",
+    title: "당뇨병",
+    subtitle: "제2형 당뇨병 진단 및 치료 안내",
+    texts: {
+      jargon: "공복혈당 148mg/dL, 당화혈색소(HbA1c) 7.8%로 제2형 당뇨병(Type 2 Diabetes Mellitus) 진단 기준에 부합합니다. 메트포르민(metformin) 투여를 통한 인슐린 저항성 개선 및 혈당 조절을 시작하며, 정기적인 자가혈당측정과 식이요법 병행을 권고합니다.",
+      easy: "혈당이 많이 높아요. 밥 먹기 전 혈당이 148인데, 정상은 100 아래예요. 최근 3개월 평균 혈당을 보는 검사도 높게 나왔어요. 이건 '당뇨병'이라는 병이에요. 혈당을 낮추는 약을 드릴 거고요, 집에서 혈당을 직접 재보시고, 식사도 조절해 주셔야 해요.",
+      detailed: "검사 결과 공복 혈당이 148로 정상(100 이하)보다 높고, 최근 3개월 평균 혈당 상태를 보여주는 '당화혈색소' 수치도 7.8%로 높게 나와서 '제2형 당뇨병'으로 진단됩니다. 이는 몸에서 만든 인슐린이 있어도 그 효과가 잘 안 먹히는, 즉 '인슐린 저항성'이 생긴 상태예요. '메트포르민'이라는 약을 드릴 건데, 이 약은 몸이 인슐린을 더 잘 활용하도록 도와서 혈당을 낮춰줘요. 집에서 직접 혈당을 재는 습관을 들이시고, 식사 조절도 함께 해주셔야 효과가 좋아요.",
+    },
+  },
+];
+
+const SCALE_LABELS = ["매우 어려움", "어려움", "보통", "쉬움", "매우 쉬움"];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+function emptyRatings() {
+  const r = {};
+  TOPICS.forEach((t) => { r[t.id] = { jargon: null, easy: null, detailed: null }; });
+  return r;
+}
+
+/* ------------------------------------------------------------------ */
+/* State                                                               */
+/* ------------------------------------------------------------------ */
+
+const state = {
+  screen: "intro", // intro | survey | submitting | submit_error | results
+  topicIndex: 0,
+  ratings: emptyRatings(),
+  orderMap: {},
+  responses: [],
+  resultsLoading: false,
+  resultsError: null,
+  justSubmittedId: null,
+  submitError: null,
+  pendingPayload: null,
+};
+TOPICS.forEach((t) => { state.orderMap[t.id] = shuffle(STYLE_KEYS); });
+
+function setState(patch) {
+  Object.assign(state, patch);
+  render();
+}
+
+/* ------------------------------------------------------------------ */
+/* Storage helpers                                                     */
+/* ------------------------------------------------------------------ */
+
+async function saveResponse(payload) {
+  const key = "response:" + payload.id;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const result = await Store.set(key, JSON.stringify(payload), true);
+      if (result) {
+        const check = await Store.get(key, true);
+        if (check && check.value) return true;
+      }
+    } catch (e) {
+      console.error("저장 시도 " + attempt + "회 실패:", e);
+    }
+    await new Promise((res) => setTimeout(res, 400 * attempt));
+  }
+  return false;
+}
+
+async function loadResults() {
+  setState({ resultsLoading: true, resultsError: null });
+  try {
+    const list = await Store.list("response:", true);
+    const keys = list && list.keys ? list.keys : [];
+    const items = [];
+    for (const key of keys) {
+      try {
+        const res = await Store.get(key, true);
+        if (res && res.value) items.push(JSON.parse(res.value));
+      } catch (e) { /* skip unreadable entry */ }
+    }
+    state.responses = items;
+    setState({ resultsLoading: false });
+  } catch (e) {
+    setState({ resultsLoading: false, resultsError: "결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요." });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Actions                                                             */
+/* ------------------------------------------------------------------ */
+
+function setRating(topicId, styleKey, value) {
+  state.ratings[topicId][styleKey] = value;
+  render();
+}
+
+function goNext() {
+  if (state.topicIndex < TOPICS.length - 1) {
+    setState({ topicIndex: state.topicIndex + 1 });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    submitSurvey();
+  }
+}
+
+function goPrev() {
+  if (state.topicIndex > 0) {
+    setState({ topicIndex: state.topicIndex - 1 });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+async function submitSurvey() {
+  setState({ screen: "submitting", submitError: null });
+  const id = Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+  const payload = { id, timestamp: Date.now(), ratings: state.ratings };
+  state.pendingPayload = payload;
+
+  const ok = await saveResponse(payload);
+  if (!ok) {
+    setState({ screen: "submit_error", submitError: "응답 저장에 실패했어요. 네트워크 상태를 확인하고 다시 시도해 주세요." });
+    return;
+  }
+  state.justSubmittedId = id;
+  await loadResults();
+  setState({ screen: "results" });
+}
+
+async function retrySubmit() {
+  if (!state.pendingPayload) { await submitSurvey(); return; }
+  setState({ screen: "submitting", submitError: null });
+  const ok = await saveResponse(state.pendingPayload);
+  if (!ok) {
+    setState({ screen: "submit_error", submitError: "이번에도 저장에 실패했어요. 잠시 후 다시 시도해 주세요." });
+    return;
+  }
+  state.justSubmittedId = state.pendingPayload.id;
+  await loadResults();
+  setState({ screen: "results" });
+}
+
+function restart() {
+  state.ratings = emptyRatings();
+  state.topicIndex = 0;
+  state.justSubmittedId = null;
+  state.submitError = null;
+  state.pendingPayload = null;
+  TOPICS.forEach((t) => { state.orderMap[t.id] = shuffle(STYLE_KEYS); });
+  setState({ screen: "intro" });
+}
+
+function goToResults() {
+  setState({ screen: "results" });
+  if (state.responses.length === 0) loadResults();
+}
+
+async function exportResponses() {
+  await loadResults();
+  const blob = new Blob([JSON.stringify(state.responses, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "survey-responses-" + Date.now() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function triggerImport() {
+  const input = document.getElementById("import-file-input");
+  if (input) input.click();
+}
+
+async function handleImportFile(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const items = JSON.parse(text);
+    const list = Array.isArray(items) ? items : [items];
+    let count = 0;
+    for (const item of list) {
+      if (item && item.id && item.ratings) {
+        await Store.set("response:" + item.id, JSON.stringify(item), true);
+        count += 1;
+      }
+    }
+    await loadResults();
+    render();
+    alert(count + "개의 응답을 가져왔어요.");
+  } catch (e) {
+    console.error("가져오기 실패:", e);
+    alert("파일을 읽지 못했어요. 올바른 결과 파일(JSON)인지 확인해 주세요.");
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Aggregation                                                         */
+/* ------------------------------------------------------------------ */
+
+function computeStats() {
+  const responses = state.responses;
+  if (responses.length === 0) return null;
+
+  const overallSum = { jargon: 0, easy: 0, detailed: 0 };
+  const overallCount = { jargon: 0, easy: 0, detailed: 0 };
+  const winCounts = { jargon: 0, easy: 0, detailed: 0 };
+  const perTopic = {};
+  TOPICS.forEach((t) => { perTopic[t.id] = { jargonSum: 0, easySum: 0, detailedSum: 0, n: 0 }; });
+
+  responses.forEach((r) => {
+    TOPICS.forEach((t) => {
+      const tr = r.ratings && r.ratings[t.id];
+      if (!tr) return;
+      const vals = STYLE_KEYS.map((k) => tr[k]);
+      if (vals.some((v) => v === null || v === undefined)) return;
+
+      STYLE_KEYS.forEach((k) => { overallSum[k] += tr[k]; overallCount[k] += 1; });
+      perTopic[t.id].jargonSum += tr.jargon;
+      perTopic[t.id].easySum += tr.easy;
+      perTopic[t.id].detailedSum += tr.detailed;
+      perTopic[t.id].n += 1;
+
+      const max = Math.max(tr.jargon, tr.easy, tr.detailed);
+      const winners = STYLE_KEYS.filter((k) => tr[k] === max);
+      if (winners.length === 1) winCounts[winners[0]] += 1;
+    });
+  });
+
+  const overallAvg = {};
+  STYLE_KEYS.forEach((k) => { overallAvg[k] = overallCount[k] ? overallSum[k] / overallCount[k] : 0; });
+
+  const perTopicData = TOPICS.map((t) => {
+    const p = perTopic[t.id];
+    return {
+      name: t.title,
+      jargon: p.n ? +(p.jargonSum / p.n).toFixed(2) : 0,
+      easy: p.n ? +(p.easySum / p.n).toFixed(2) : 0,
+      detailed: p.n ? +(p.detailedSum / p.n).toFixed(2) : 0,
+    };
+  });
+
+  return { respondents: responses.length, overallAvg, perTopicData, winCounts };
+}
+
+/* ------------------------------------------------------------------ */
+/* Render helpers                                                      */
+/* ------------------------------------------------------------------ */
+
+function esc(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function thermometerHtml(topicId, styleKey, value, color) {
+  let segs = "";
+  for (let n = 1; n <= 5; n++) {
+    segs += '<button type="button" class="thermo-seg" data-topic="' + topicId + '" data-style="' + styleKey + '" data-value="' + n + '" style="background:' + (value >= n ? color : "#E7ECEB") + '" aria-label="' + SCALE_LABELS[n - 1] + '"></button>';
+  }
+  return (
+    '<div class="thermo-shell">' +
+      '<div class="thermo-bulb" style="background:' + (value ? color : "#DCE3E2") + '">' + (value || "") + '</div>' +
+      '<div class="thermo-track">' + segs + '</div>' +
+    '</div>' +
+    '<div class="thermo-scale-labels"><span>매우 어려움</span><span>매우 쉬움</span></div>'
+  );
+}
+
+function explanationCardHtml(topicId, styleKey, label, text, value) {
+  const color = STYLE_META[styleKey].color.startsWith("var") ?
+    { jargon: "#B5555A", easy: "#2F7A73", detailed: "#C98A2E" }[styleKey] : STYLE_META[styleKey].color;
+  return (
+    '<div class="exp-card">' +
+      '<div class="exp-card-badge" style="background:' + color + '">' + esc(label) + '</div>' +
+      '<p class="exp-card-text">' + esc(text) + '</p>' +
+      '<div class="exp-card-rating">' +
+        '<span class="rating-caption">이 설명, 이해하기 얼마나 쉬웠나요?</span>' +
+        thermometerHtml(topicId, styleKey, value, color) +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function progressRailHtml(step) {
+  let dots = "";
+  TOPICS.forEach((t, i) => {
+    const cls = "progress-dot" + (i <= step ? " filled" : "") + (i === step ? " current" : "");
+    dots += '<div class="progress-dot-wrap"><div class="' + cls + '">' + (i < step ? "✓" : (i + 1)) + '</div><span class="progress-dot-label">' + esc(t.title) + '</span></div>';
+  });
+  const pct = TOPICS.length > 1 ? (step / (TOPICS.length - 1)) * 100 : 100;
+  return (
+    '<div class="progress-rail">' +
+      '<div class="progress-line"><div class="progress-line-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="progress-dots">' + dots + '</div>' +
+    '</div>'
+  );
+}
+
+function barChartHtml(items) {
+  // items: [{label, value, color}]
+  let cols = "";
+  items.forEach((it) => {
+    const h = Math.max(4, (it.value / 5) * 150);
+    cols += (
+      '<div class="bar-col">' +
+        '<div class="bar-value" style="color:' + it.color + '">' + it.value.toFixed(2) + '</div>' +
+        '<div class="bar-fill" style="height:' + h + 'px;background:' + it.color + '"></div>' +
+        '<div class="bar-label">' + esc(it.label) + '</div>' +
+      '</div>'
+    );
+  });
+  return '<div class="bar-chart">' + cols + '</div>';
+}
+
+function groupedChartHtml(perTopicData) {
+  const colors = { jargon: "#B5555A", easy: "#2F7A73", detailed: "#C98A2E" };
+  let cols = "";
+  perTopicData.forEach((row) => {
+    let bars = "";
+    STYLE_KEYS.forEach((k) => {
+      const h = Math.max(4, (row[k] / 5) * 150);
+      bars += (
+        '<div class="grouped-bar" style="height:' + h + 'px;background:' + colors[k] + '">' +
+          '<span class="grouped-bar-value" style="color:' + colors[k] + '">' + row[k].toFixed(1) + '</span>' +
+        '</div>'
+      );
+    });
+    cols += '<div class="grouped-col"><div class="grouped-bars">' + bars + '</div><div class="grouped-name">' + esc(row.name) + '</div></div>';
+  });
+  return '<div class="grouped-chart">' + cols + '</div>';
+}
+
+/* ------------------------------------------------------------------ */
+/* Screens                                                             */
+/* ------------------------------------------------------------------ */
+
+function renderIntro() {
+  let cards = "";
+  STYLE_KEYS.forEach((k) => {
+    const color = { jargon: "#B5555A", easy: "#2F7A73", detailed: "#C98A2E" }[k];
+    const desc = k === "jargon" ? "의학 용어를 그대로 사용한 설명이에요."
+      : k === "easy" ? "전문 용어 없이 일상 말로 풀어낸 설명이에요."
+      : "용어는 그대로 두되, 뜻을 자세히 풀어 설명해요.";
+    cards += (
+      '<div class="intro-style-card">' +
+        '<div class="intro-style-dot" style="background:' + color + '"></div>' +
+        '<div class="intro-style-name">' + esc(STYLE_META[k].label) + '</div>' +
+        '<div class="intro-style-desc">' + desc + '</div>' +
+      '</div>'
+    );
+  });
+
+  return (
+    '<div class="intro-hero">' +
+      '<span class="eyebrow">🩺 병원 설명 방식 연구</span>' +
+      '<h1 class="intro-title">같은 진단, 다른 설명 —<br/>어떤 말이 가장 잘 들리시나요?</h1>' +
+      '<p class="intro-desc">같은 진료 상황을 <strong>전문어만</strong>, <strong>쉬운 말만</strong>, <strong>전문어 + 자세한 설명</strong>, 세 가지 방식으로 보여드려요. 총 ' + TOPICS.length + '개 상황을 읽고, 각 설명이 얼마나 이해하기 쉬웠는지 &lsquo;이해도 체온계&rsquo;로 표시해 주세요. 약 1~2분 정도 걸려요.</p>' +
+      '<svg class="ecg-divider" viewBox="0 0 420 40" preserveAspectRatio="none"><path class="ecg-path" d="M0,20 L90,20 L110,20 L120,4 L132,36 L144,20 L165,20 L180,20 L195,10 L210,30 L225,20 L420,20" /></svg>' +
+      '<div class="intro-cards">' + cards + '</div>' +
+      '<div class="btn-row">' +
+        '<button class="btn btn-primary" id="btn-start">📋 설문 시작하기</button>' +
+        '<button class="btn btn-ghost" id="btn-view-results">결과만 보기</button>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function renderSurvey() {
+  const topic = TOPICS[state.topicIndex];
+  const order = state.orderMap[topic.id];
+  const tr = state.ratings[topic.id];
+  const allRated = STYLE_KEYS.every((k) => tr[k] !== null);
+
+  let cards = "";
+  order.forEach((styleKey, idx) => {
+    const label = "설명 " + String.fromCharCode(65 + idx);
+    cards += explanationCardHtml(topic.id, styleKey, label, topic.texts[styleKey], tr[styleKey]);
+  });
+
+  return (
+    progressRailHtml(state.topicIndex) +
+    '<div class="topic-header">' +
+      '<span class="eyebrow font-mono">문항 ' + (state.topicIndex + 1) + ' / ' + TOPICS.length + '</span>' +
+      '<h2 class="topic-title">' + esc(topic.title) + '</h2>' +
+      '<p class="topic-subtitle">' + esc(topic.subtitle) + '</p>' +
+    '</div>' +
+    cards +
+    '<div class="survey-nav">' +
+      '<button class="btn btn-ghost" id="btn-prev" ' + (state.topicIndex === 0 ? "disabled" : "") + '>← 이전</button>' +
+      '<span class="nav-hint">' + (allRated ? "모두 응답했어요" : "세 설명 모두 평가해 주세요") + '</span>' +
+      '<button class="btn btn-primary" id="btn-next" ' + (allRated ? "" : "disabled") + '>' + (state.topicIndex === TOPICS.length - 1 ? "제출하기" : "다음 →") + '</button>' +
+    '</div>'
+  );
+}
+
+function renderSubmitting() {
+  return '<div class="center-state"><div class="spin" style="font-size:28px;">⏳</div><p style="margin-top:14px;color:var(--ink-soft);">응답을 저장하고 있어요…</p></div>';
+}
+
+function renderSubmitError() {
+  return (
+    '<div class="center-state">' +
+      '<p style="color:var(--jargon);font-weight:600;margin-bottom:6px;">저장에 실패했어요</p>' +
+      '<p style="color:var(--ink-soft);margin-bottom:20px;">' + esc(state.submitError || "") + '</p>' +
+      '<div class="btn-row">' +
+        '<button class="btn btn-primary" id="btn-retry">🔄 다시 시도</button>' +
+        '<button class="btn btn-ghost" id="btn-back-to-survey">← 응답으로 돌아가기</button>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function renderResults() {
+  const stats = computeStats();
+
+  let body = "";
+  if (state.resultsLoading && state.responses.length === 0) {
+    body = '<div class="center-state"><div class="spin" style="font-size:26px;">⏳</div><p style="margin-top:12px;color:var(--ink-soft);">결과를 불러오는 중이에요…</p></div>';
+  } else if (state.resultsError) {
+    body = '<p style="color:var(--jargon);">' + esc(state.resultsError) + '</p>';
+  } else if (stats) {
+    const overallItems = STYLE_KEYS.map((k) => ({
+      label: STYLE_META[k].label,
+      value: stats.overallAvg[k],
+      color: { jargon: "#B5555A", easy: "#2F7A73", detailed: "#C98A2E" }[k],
+    }));
+
+    let legend = "";
+    STYLE_KEYS.forEach((k) => {
+      const color = { jargon: "#B5555A", easy: "#2F7A73", detailed: "#C98A2E" }[k];
+      legend += '<span><span class="legend-dot" style="background:' + color + '"></span>' + esc(STYLE_META[k].label) + '</span>';
+    });
+
+    let winCards = "";
+    STYLE_KEYS.forEach((k) => {
+      const color = { jargon: "#B5555A", easy: "#2F7A73", detailed: "#C98A2E" }[k];
+      winCards += '<div class="win-card"><div class="win-num" style="color:' + color + '">' + stats.winCounts[k] + '</div><div class="win-label">' + esc(STYLE_META[k].label) + '</div></div>';
+    });
+
+    body = (
+      '<div class="stat-strip" style="margin-bottom:18px;">👥 <span class="font-mono">' + stats.respondents + '</span><span>명이 참여했어요</span></div>' +
+      '<div class="chart-card">' +
+        '<h3>전체 평균 이해도</h3>' +
+        '<p class="chart-sub">1(매우 어려움) ~ 5(매우 쉬움), 전체 문항 평균</p>' +
+        barChartHtml(overallItems) +
+      '</div>' +
+      '<div class="chart-card">' +
+        '<h3>상황별 이해도 비교</h3>' +
+        '<p class="chart-sub">문항마다 세 설명 방식의 평균 이해도예요</p>' +
+        '<div class="legend-row">' + legend + '</div>' +
+        groupedChartHtml(stats.perTopicData) +
+      '</div>' +
+      '<div class="chart-card">' +
+        '<h3>가장 이해하기 쉬웠던 방식</h3>' +
+        '<p class="chart-sub">문항별로 가장 높은 점수를 받은 설명 방식의 횟수예요</p>' +
+        '<div class="win-grid">' + winCards + '</div>' +
+      '</div>'
+    );
+  } else {
+    body = '<div class="center-state"><p style="color:var(--ink-soft);">아직 응답이 없어요. 첫 번째로 참여해 보세요!</p></div>';
+  }
+
+  return (
+    '<div class="results-header">' +
+      '<div>' +
+        '<span class="eyebrow">' + (state.justSubmittedId ? "✅ 응답이 저장됐어요" : "결과 보기") + '</span>' +
+        '<h2 class="results-title">설문 결과</h2>' +
+      '</div>' +
+      '<button class="btn btn-ghost" id="btn-refresh">🔄 새로고침</button>' +
+    '</div>' +
+    body +
+    '<div class="btn-row" style="margin-top:24px;">' +
+      '<button class="btn btn-primary" id="btn-restart">↺ 설문 다시 참여하기</button>' +
+    '</div>'
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Main render + event wiring                                          */
+/* ------------------------------------------------------------------ */
+
+function render() {
+  const root = document.getElementById("app");
+  let html = "";
+  if (state.screen === "intro") html = renderIntro();
+  else if (state.screen === "survey") html = renderSurvey();
+  else if (state.screen === "submitting") html = renderSubmitting();
+  else if (state.screen === "submit_error") html = renderSubmitError();
+  else if (state.screen === "results") html = renderResults();
+
+  root.innerHTML = '<div class="shell">' + html + '</div>';
+  wireEvents();
+}
+
+function wireEvents() {
+  const byId = (id) => document.getElementById(id);
+
+  if (byId("btn-start")) byId("btn-start").onclick = () => setState({ screen: "survey" });
+  if (byId("btn-view-results")) byId("btn-view-results").onclick = goToResults;
+  if (byId("btn-prev")) byId("btn-prev").onclick = goPrev;
+  if (byId("btn-next")) byId("btn-next").onclick = goNext;
+  if (byId("btn-retry")) byId("btn-retry").onclick = retrySubmit;
+  if (byId("btn-back-to-survey")) byId("btn-back-to-survey").onclick = () => setState({ screen: "survey" });
+  if (byId("btn-refresh")) byId("btn-refresh").onclick = loadResults;
+  if (byId("btn-restart")) byId("btn-restart").onclick = restart;
+  if (byId("btn-export")) byId("btn-export").onclick = exportResponses;
+  if (byId("btn-import")) byId("btn-import").onclick = triggerImport;
+  if (byId("import-file-input")) byId("import-file-input").onchange = (e) => handleImportFile(e.target.files[0]);
+
+  document.querySelectorAll(".thermo-seg").forEach((btn) => {
+    btn.onclick = () => {
+      setRating(btn.getAttribute("data-topic"), btn.getAttribute("data-style"), parseInt(btn.getAttribute("data-value"), 10));
+    };
+  });
+}
+
+render();
+</script>
+</body>
+</html>
